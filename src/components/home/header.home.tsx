@@ -3,9 +3,6 @@ import Entypo from "@expo/vector-icons/Entypo";
 const HeaderHome = () => {
   return (
     <View>
-      <View>
-        <Text style={{ fontWeight: "500", paddingLeft: 5 }}>Delivered to</Text>
-      </View>
       <View
         style={{
           flexDirection: "row",

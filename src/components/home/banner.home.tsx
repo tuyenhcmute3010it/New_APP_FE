@@ -5,11 +5,11 @@ import Carousel, {
   ICarouselInstance,
   Pagination,
 } from "react-native-reanimated-carousel";
+import bn5 from "@/assets/banner/bn5.png";
+import bn1 from "@/assets/banner/bn1.jpg";
+import bn2 from "@/assets/banner/bn2.jpg";
+import bn3 from "@/assets/banner/bn3.jpg";
 import bn4 from "@/assets/banner/bn4.jpg";
-import bn5 from "@/assets/banner/bn5.jpg";
-import bn6 from "@/assets/banner/bn6.jpg";
-import bn7 from "@/assets/banner/bn7.jpg";
-import bn8 from "@/assets/banner/bn8.jpg";
 const data = [...new Array(6).keys()];
 function BannerHome() {
   const ref = React.useRef<ICarouselInstance>(null);
@@ -26,11 +26,11 @@ function BannerHome() {
     });
   };
   const sliders = [
-    { id: 1, source: bn4 },
-    { id: 2, source: bn5 },
-    { id: 3, source: bn6 },
-    { id: 4, source: bn7 },
-    { id: 5, source: bn8 },
+    { id: 1, source: bn1 },
+    { id: 2, source: bn2 },
+    { id: 3, source: bn3 },
+    { id: 4, source: bn4 },
+    { id: 5, source: bn5 },
   ];
   return (
     <View style={{ flex: 1 }}>

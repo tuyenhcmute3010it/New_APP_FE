@@ -146,7 +146,7 @@ const FavoriteTab = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.sectionTitle}>Liked Restaurants</Text>
+        <Text style={styles.sectionTitle}>Liked Article</Text>
         <View style={[styles.listContainer, { maxHeight: maxListHeight }]}>
           <FlatList
             data={likedRestaurants}
@@ -161,7 +161,7 @@ const FavoriteTab = () => {
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
             ListEmptyComponent={
-              <Text style={styles.emptyText}>No liked restaurants</Text>
+              <Text style={styles.emptyText}>No liked Article</Text>
             }
             ListFooterComponent={
               loading && page > 1 ? (
@@ -170,7 +170,7 @@ const FavoriteTab = () => {
             }
           />
         </View>
-        <Text style={styles.sectionTitle}>Disliked Restaurants</Text>
+        <Text style={styles.sectionTitle}>Disliked Article</Text>
         <View style={[styles.listContainer, { maxHeight: maxListHeight }]}>
           <FlatList
             data={dislikedRestaurants}
@@ -182,7 +182,7 @@ const FavoriteTab = () => {
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
             ListEmptyComponent={
-              <Text style={styles.emptyText}>No disliked restaurants</Text>
+              <Text style={styles.emptyText}>No disliked Article</Text>
             }
             ListFooterComponent={
               loading && page > 1 ? (

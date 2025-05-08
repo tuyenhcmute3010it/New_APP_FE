@@ -110,12 +110,7 @@ const RootLayout = () => {
                 presentation: "transparentModal",
               }}
             />
-            <Stack.Screen
-              name="product/order"
-              options={{
-                headerTitle: "Order Confirmation",
-              }}
-            />
+
             <Stack.Screen
               name="(user)/account/user.info"
               options={{

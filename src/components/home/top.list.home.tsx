@@ -50,56 +50,107 @@ const styles = StyleSheet.create({
     width: "100%",
   },
 });
-
 const data1 = [
   {
     key: 1,
-    name: "Hot Deal",
-    source: require("@/assets/icons/flash-deals.png"),
+    name: "Football",
+    source: require("@/assets/icons/football.jpg"),
   },
   {
     key: 2,
-    name: "Quán Ngon",
-    source: require("@/assets/icons/nice-shop.png"),
+    name: "Politics",
+    source: require("@/assets/icons/politics.jpg"),
   },
-  { key: 3, name: "Tích Điểm", source: require("@/assets/icons/points.png") },
-  { key: 4, name: "Ngọt Xỉu", source: require("@/assets/icons/rice.png") },
+  {
+    key: 3,
+    name: "Volleyball",
+    source: require("@/assets/icons/volleyball.jpg"),
+  },
+  {
+    key: 4,
+    name: "Healthcare",
+    source: require("@/assets/icons/health.jpg"),
+  },
   {
     key: 5,
-    name: "Quán Tiền Bối",
-    source: require("@/assets/icons/noodles.png"),
+    name: "Economy",
+    source: require("@/assets/icons/economy.jpg"),
   },
   {
     key: 6,
-    name: "Bún, Mì, Phở",
-    source: require("@/assets/icons/bun-pho.png"),
+    name: "Culture",
+    source: require("@/assets/icons/culture.jpg"),
   },
-  { key: 7, name: "BBQ", source: require("@/assets/icons/bbq.png") },
-  { key: 8, name: "Fast Food", source: require("@/assets/icons/fastfood.png") },
-  { key: 9, name: "Pizza", source: require("@/assets/icons/Pizza.png") },
-  { key: 10, name: "Burger", source: require("@/assets/icons/burger.png") },
+  {
+    key: 7,
+    name: "Education",
+    source: require("@/assets/icons/education.jpg"),
+  },
+  {
+    key: 8,
+    name: "Technology",
+    source: require("@/assets/icons/technology.jpg"),
+  },
+  {
+    key: 9,
+    name: "Entertain",
+    source: require("@/assets/icons/entertainment.jpg"),
+  },
+  {
+    key: 10,
+    name: "Travel",
+    source: require("@/assets/icons/travel.jpg"),
+  },
   {
     key: 11,
-    name: "Sống Khỏe",
-    source: require("@/assets/icons/egg-cucmber.png"),
+    name: "Law",
+    source: require("@/assets/icons/law.jpg"),
   },
-  { key: 12, name: "Giảm 50k", source: require("@/assets/icons/moi-moi.png") },
+  {
+    key: 12,
+    name: "Military",
+    source: require("@/assets/icons/military.jpg"),
+  },
   {
     key: 13,
-    name: "99k Off",
-    source: require("@/assets/icons/fried-chicken.png"),
+    name: "Vehicles",
+    source: require("@/assets/icons/car.jpg"),
   },
   {
     key: 14,
-    name: "No Bụng",
-    source: require("@/assets/icons/korean-food.png"),
+    name: "Real Estate",
+    source: require("@/assets/icons/real-estate.jpg"),
   },
-  { key: 15, name: "Freeship", source: require("@/assets/icons/Steak.png") },
-  { key: 16, name: "Deal 0Đ", source: require("@/assets/icons/tomato.png") },
-  { key: 17, name: "Món 1Đ", source: require("@/assets/icons/elipse.png") },
-  { key: 18, name: "Ăn chiều", source: require("@/assets/icons/chowmein.png") },
-  { key: 19, name: "Combo 199k", source: require("@/assets/icons/Notif.png") },
-  { key: 20, name: "Milk Tea", source: require("@/assets/icons/salad.png") },
+  {
+    key: 15,
+    name: "Fashion",
+    source: require("@/assets/icons/fashion.jpg"),
+  },
+  {
+    key: 16,
+    name: "Cuisine",
+    source: require("@/assets/icons/food.jpg"),
+  },
+  {
+    key: 17,
+    name: "Fitness",
+    source: require("@/assets/icons/fitness.jpg"),
+  },
+  {
+    key: 18,
+    name: "Environment",
+    source: require("@/assets/icons/environment.jpg"),
+  },
+  {
+    key: 19,
+    name: "World",
+    source: require("@/assets/icons/world.jpg"),
+  },
+  {
+    key: 20,
+    name: "Science",
+    source: require("@/assets/icons/science.jpg"),
+  },
 ];
 const TopListHome = () => {
   return (
@@ -120,22 +171,9 @@ const TopListHome = () => {
           data={data1}
           renderItem={({ item, index }) => {
             return (
-              // <View
-              //   style={{
-              //     padding: 10,
-              //     margin: 5,
-              //     borderWidth: 1,
-              //     borderColor: "#ccc",
-              //     width: 50,
-              //     height: 50,
-              //     alignSelf: "flex-start",
-              //   }}
-              // >
-              //   <Text>{index + 1}</Text>
-              // </View>
               <View
                 style={{
-                  padding: 5,
+                  padding: 7,
                   width: 100,
                   alignItems: "center",
                 }}
@@ -145,6 +183,7 @@ const TopListHome = () => {
                     padding: 5,
                     width: 35,
                     height: 35,
+                    borderRadius: 30,
                   }}
                   source={item.source}
                 />

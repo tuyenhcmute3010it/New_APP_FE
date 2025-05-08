@@ -25,7 +25,7 @@ const SearchHome = () => {
       >
         <AntDesign name="search1" size={15} color="black" />
 
-        <Text>Deal hot today only 0d</Text>
+        <Text>Search News Now</Text>
       </Pressable>
     </View>
   );

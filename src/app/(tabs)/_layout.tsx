@@ -3,22 +3,16 @@ import { Tabs } from "expo-router";
 import { SafeAreaView, Text } from "react-native";
 import AccountTab from "./account";
 import NotificationTab from "./notification";
-import OrderTab from "./order";
 import FavoriteTab from "./favorite";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { APP_COLOR } from "@/utils/constant";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 const TabLayout = () => {
   const Tab = createBottomTabNavigator();
   const getIcons = (routeName: string, focused: boolean, size: number) => {
     if (routeName === "index") {
-      return (
-        <Ionicons
-          name="fast-food"
-          size={24}
-          color={focused ? APP_COLOR.GRAY : APP_COLOR.GRAY}
-        />
-      );
+      return <FontAwesome name="home" size={24} color="black" />;
     }
     if (routeName === "article") {
       return (

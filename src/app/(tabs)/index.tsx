@@ -18,7 +18,6 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import AccountTab from "./account";
 
 import NotificationTab from "./notification";
-import OrderTab from "./order";
 import FavoriteTab from "./favorite";
 import { useCurrentApp } from "@/context/app.context";
 import { useEffect, useState } from "react";
