@@ -1,3 +1,4 @@
+// src/app/articles/page.tsx
 import { useEffect, useState } from "react";
 import {
   FlatList,
@@ -7,12 +8,11 @@ import {
   Text,
   ActivityIndicator,
   View,
-  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { APP_COLOR } from "@/utils/constant";
-import { getRecentArticles } from "@/utils/api";
+import { getArticlesAPI } from "@/utils/api";
 
 interface IArticle {
   _id: string;
@@ -40,36 +40,30 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 10,
   },
-  notificationItem: {
+  item: {
     flexDirection: "row",
     padding: 10,
     marginBottom: 10,
     backgroundColor: "#f9f9f9",
     borderRadius: 4,
-    alignItems: "center",
   },
   thumbnail: {
-    width: 60,
-    height: 60,
+    width: 80,
+    height: 80,
     borderRadius: 4,
     marginRight: 10,
-  },
-  placeholderThumbnail: {
-    width: 60,
-    height: 60,
-    borderRadius: 4,
-    marginRight: 10,
-    backgroundColor: "#ddd",
-  },
-  contentContainer: {
-    flex: 1,
   },
   title: {
     fontSize: 16,
     fontWeight: "600",
     color: APP_COLOR.GRAY,
   },
-  timestamp: {
+  description: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 5,
+  },
+  author: {
     fontSize: 12,
     color: "#999",
     marginTop: 5,
@@ -84,82 +78,82 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
   },
-  emptyText: {
-    fontSize: 16,
-    color: "#999",
-    textAlign: "center",
-    marginTop: 20,
-  },
 });
 
-const NotificationTab = () => {
+const AllArticles = () => {
   const [articles, setArticles] = useState<IArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-  const fetchNotifications = async (isRefresh: boolean = false) => {
+  const fetchArticles = async (pageNum: number = 1) => {
+    if (!hasMore && pageNum !== 1) return;
     try {
-      setLoading(!isRefresh);
-      setRefreshing(isRefresh);
-      const response = await getRecentArticles(20);
-      console.log("Notifications response:---------", response.data);
-      setArticles(response.data.data.result);
-    } catch (err: any) {
-      setError(err.message || "Failed to load notifications");
-    } finally {
+      const response = await getArticlesAPI(pageNum, 10);
+      const newArticles = response.data.data.result;
+      if (pageNum === 1) {
+        setArticles(newArticles);
+      } else {
+        setArticles((prev) => [...prev, ...newArticles]);
+      }
+      setHasMore(pageNum < response.data.data.meta.pages);
       setLoading(false);
-      setRefreshing(false);
+    } catch (err: any) {
+      setError(err.message || "Failed to load articles");
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchNotifications();
+    fetchArticles(1);
   }, []);
 
-  const onRefresh = async () => {
-    await fetchNotifications(true);
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      setLoading(true);
+      setPage((prev) => {
+        const nextPage = prev + 1;
+        fetchArticles(nextPage);
+        return nextPage;
+      });
+    }
   };
 
-  const renderNotification = ({ item }: { item: IArticle }) => (
+  const renderItem = ({ item }: { item: IArticle }) => (
     <Pressable
-      style={styles.notificationItem}
       onPress={() =>
-        router.push({
+        router.navigate({
           pathname: "/article/[id]",
           params: { id: item._id },
         })
       }
     >
-      {item.thumbnail ? (
-        <Image
-          style={styles.thumbnail}
-          source={{ uri: item.thumbnail }}
-          onError={() =>
-            console.log(`Failed to load thumbnail for ${item._id}`)
-          }
-        />
-      ) : (
-        <View style={styles.placeholderThumbnail} />
-      )}
-      <View style={styles.contentContainer}>
-        <Text style={styles.title} numberOfLines={2}>
-          New Article: {item.title}
-        </Text>
-        <Text style={styles.timestamp}>
-          {new Date(item.createdAt).toLocaleString()}
-        </Text>
+      <View style={styles.item}>
+        {item.thumbnail ? (
+          <Image
+            style={styles.thumbnail}
+            source={{ uri: item.thumbnail }}
+            onError={() =>
+              console.log(`Failed to load thumbnail for ${item._id}`)
+            }
+          />
+        ) : (
+          <View style={[styles.thumbnail, { backgroundColor: "#ddd" }]} />
+        )}
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title} numberOfLines={2}>
+            {item.title}
+          </Text>
+          <Text style={styles.description} numberOfLines={2}>
+            {item.content.substring(0, 100) +
+              (item.content.length > 100 ? "..." : "")}
+          </Text>
+          <Text style={styles.author}>By {item.author.name}</Text>
+        </View>
       </View>
     </Pressable>
   );
-
-  if (loading && !refreshing) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color={APP_COLOR.BLUE} />
-      </SafeAreaView>
-    );
-  }
 
   if (error) {
     return (
@@ -173,14 +167,10 @@ const NotificationTab = () => {
     <SafeAreaView style={styles.container}>
       <FlatList
         data={articles}
-        renderItem={renderNotification}
+        renderItem={renderItem}
         keyExtractor={(item) => item._id}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No new articles</Text>
-        }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
         ListFooterComponent={
           loading ? (
             <View style={styles.footer}>
@@ -188,9 +178,12 @@ const NotificationTab = () => {
             </View>
           ) : null
         }
+        ListEmptyComponent={
+          !loading ? <Text style={styles.error}>No articles found</Text> : null
+        }
       />
     </SafeAreaView>
   );
 };
 
-export default NotificationTab;
+export default AllArticles;

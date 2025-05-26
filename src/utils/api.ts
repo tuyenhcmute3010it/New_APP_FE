@@ -176,3 +176,250 @@ export const currencyFormatter = (value: any) => {
     options.thousandsSeparator
   )}${options.symbol}`;
 };
+// src/utils/api.ts (or wherever your API functions are defined)
+export const getArticlesAPI = (
+  currentPage: number = 1,
+  pageSize: number = 10
+) => {
+  const url = `/api/v1/articles`;
+  return axios
+    .get<{
+      statusCode: number;
+      message: string;
+      data: {
+        meta: {
+          current: number | null;
+          pageSize: number | null;
+          pages: number;
+          total: number;
+        };
+        result: IArticle[];
+      };
+    }>(url, {
+      params: {
+        current: currentPage,
+        pageSize,
+      },
+    })
+    .catch((error) => {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch articles"
+      );
+    });
+};
+// export const getRecentArticles = (limit: number = 20) => {
+//   const url = `/api/v1/articles`;
+//   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+//   return axios
+//     .get<{
+//       statusCode: number;
+//       message: string;
+//       data: {
+//         result: IArticle[];
+//         meta: {
+//           current: number;
+//           pageSize: number;
+//           pages: number;
+//           total: number;
+//         };
+//       };
+//     }>(url, {
+//       params: {
+//         current: 1,
+//         pageSize: limit,
+//         createdSince: since,
+//         isDeleted: false,
+//         sort: "-createdAt",
+//       },
+//     })
+//     .catch((error) => {
+//       console.error("Fetch recent articles error:", error.response?.data);
+//       throw new Error(
+//         error.response?.data?.message || "Failed to fetch recent articles"
+//       );
+//     });
+// };
+export const getRecentArticles = (limit: number = 20) => {
+  const url = `/api/v1/articles`;
+  // Calculate 7 days ago in +07 timezone
+  const sinceDate = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  // Adjust for +07 (7 hours ahead of UTC)
+  sinceDate.setHours(sinceDate.getHours() + 7);
+  const since = sinceDate.toISOString();
+  console.log("Fetching recent articles with createdSince:", since);
+  return axios
+    .get<{
+      statusCode: number;
+      message: string;
+      data: {
+        result: IArticle[];
+        meta: {
+          current: number;
+          pageSize: number;
+          pages: number;
+          total: number;
+        };
+      };
+    }>(url, {
+      params: {
+        current: 1,
+        pageSize: limit,
+        createdSince: since,
+        isDeleted: false,
+        sort: "-createdAt",
+      },
+    })
+    .catch((error) => {
+      console.error("Fetch recent articles error:", error.response?.data);
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch recent articles"
+      );
+    });
+};
+export const getListArticlesAPI = (
+  page: number = 1,
+  pageSize: number = 10,
+  sort: string = "createdAt"
+) => {
+  const url = `/api/v1/articles`;
+  return axios
+    .get<{
+      statusCode: number;
+      message: string;
+      data: {
+        result: IArticle[];
+        meta: {
+          current: number;
+          pageSize: number;
+          pages: number;
+          total: number;
+        };
+      };
+    }>(url, {
+      params: { current: page, pageSize, sort },
+    })
+    .catch((error) => {
+      console.error("Fetch articles error:", error.response?.data);
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch articles"
+      );
+    });
+};
+interface IArticle {
+  _id: string;
+  title: string;
+  content: string;
+  thumbnail: string;
+  author: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  createdBy: {
+    _id: string;
+    email: string;
+  };
+  isDeleted: boolean;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+export const getArticleById = (id: string) => {
+  const url = `/api/v1/articles/${id}`;
+  return axios
+    .get<{
+      statusCode: number;
+      message: string;
+      data: {
+        message: string;
+        data: IArticle;
+      };
+    }>(url)
+    .catch((error) => {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch article"
+      );
+    });
+};
+// src/utils/api.ts
+interface ILike {
+  _id: string;
+  article: {
+    _id: string;
+    title: string;
+    thumbnail?: string;
+  };
+  quantity: number; // 1 for like, -1 for dislike
+  updatedAt: string;
+}
+
+// src/utils/api.ts
+
+////////////
+// src/utils/api.ts
+interface ILike {
+  _id: string;
+  article: {
+    _id: string;
+    title: string;
+    thumbnail?: string;
+  };
+  quantity: number;
+  updatedAt: string;
+}
+
+export const likedArticle = (articleId: string, quantity: number) => {
+  const url = `/api/v1/likes`;
+  return axios
+    .post<{
+      message: string;
+      data: ILike | null;
+    }>(url, { article: articleId, quantity })
+    .catch((error) => {
+      throw new Error(error.response?.data?.message || "Failed to update like");
+    });
+};
+
+export const getArticleLikeStatus = (articleId: string) => {
+  const url = `/api/v1/likes/${articleId}`;
+  return axios
+    .get<{
+      message: string;
+      data: ILike | null;
+    }>(url)
+    .catch((error) => {
+      console.error(
+        `Like status error for article ${articleId}:`,
+        error.response?.data
+      );
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch article like status"
+      );
+    });
+};
+export const getUserArticleLikes = (
+  page: number = 1,
+  pageSize: number = 20
+) => {
+  const url = `/api/v1/likes`;
+  return axios
+    .get<{
+      meta: {
+        current: number;
+        pageSize: number;
+        pages: number;
+        total: number;
+      };
+      result: ILike[];
+    }>(url, {
+      params: {
+        current: page,
+        pageSize,
+      },
+    })
+    .catch((error) => {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch user likes"
+      );
+    });
+};

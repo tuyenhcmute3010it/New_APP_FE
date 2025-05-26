@@ -1,200 +1,34 @@
-import React, { useState, useEffect } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   FlatList,
   Text,
   View,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   ActivityIndicator,
   Image,
   Dimensions,
-  Pressable,
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { getUrlBaseBackend, getUserLikes } from "@/utils/api";
+import { getUserArticleLikes } from "@/utils/api";
 import { APP_COLOR } from "@/utils/constant";
 
-const FavoriteTab = () => {
-  const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
-  const maxListHeight = windowHeight * 0.5;
-  const [likedRestaurants, setLikedRestaurants] = useState<ILike[]>([]);
-  const [dislikedRestaurants, setDislikedRestaurants] = useState<ILike[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  // Deduplicate likes by keeping the latest interaction per restaurant
-  const processLikes = (likes: ILike[]) => {
-    const latestLikes: { [restaurantId: string]: ILike } = {};
-    likes.forEach((like) => {
-      const restaurantId = like.restaurant._id;
-      if (
-        !latestLikes[restaurantId] ||
-        new Date(like.updatedAt) > new Date(latestLikes[restaurantId].updatedAt)
-      ) {
-        latestLikes[restaurantId] = like;
-      }
-    });
-    return Object.values(latestLikes);
+interface ILike {
+  _id: string;
+  article: {
+    _id: string;
+    title: string;
+    thumbnail?: string;
   };
+  quantity: number;
+  updatedAt: string;
+}
 
-  // Fetch user likes
-  const fetchUserLikes = async (pageNum: number, isRefresh = false) => {
-    try {
-      setLoading(true);
-      const res = await getUserLikes(pageNum, 20);
-      const likes = processLikes(res.data.data.result);
-
-      if (isRefresh) {
-        // Clear existing data on refresh
-        setLikedRestaurants(likes.filter((like) => like.quantity === 1));
-        setDislikedRestaurants(likes.filter((like) => like.quantity === -1));
-      } else {
-        // Append data for pagination
-        setLikedRestaurants((prev) => [
-          ...prev,
-          ...likes.filter((like) => like.quantity === 1),
-        ]);
-        setDislikedRestaurants((prev) => [
-          ...prev,
-          ...likes.filter((like) => like.quantity === -1),
-        ]);
-      }
-
-      if (likes.length < 20) setHasMore(false);
-    } catch (err: any) {
-      setError(err.message || "Failed to load favorite restaurants");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUserLikes(page);
-  }, [page]);
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    setPage(1); // Reset to first page
-    setHasMore(true); // Reset hasMore
-    await fetchUserLikes(1, true); // Fetch with refresh flag
-    setRefreshing(false);
-  };
-
-  const loadMore = () => {
-    if (hasMore && !loading && !refreshing) setPage((prev) => prev + 1);
-  };
-
-  // Render a restaurant item
-  const renderRestaurantItem = ({ item }: { item: ILike }) => (
-    <Pressable
-      style={styles.restaurantItem}
-      onPress={() =>
-        router.navigate({
-          pathname: "/product/[id]",
-          params: { id: item.restaurant._id },
-        })
-      }
-    >
-      <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
-        <View>
-          <Image
-            source={{
-              uri: `${getUrlBaseBackend()}/images/restaurant/${
-                item.restaurant.image
-              }`,
-            }}
-            style={{ width: 60, height: 60 }}
-          />
-        </View>
-        <View>
-          <Text style={styles.restaurantName}>{item.restaurant.name}</Text>
-          <Text style={styles.timestamp}>
-            {new Date(item.updatedAt).toLocaleDateString()}
-          </Text>
-        </View>
-      </View>
-    </Pressable>
-  );
-
-  if (loading && page === 1 && !refreshing) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color={APP_COLOR.GRAY} />
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.error}>{error}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => fetchUserLikes(1)}
-        >
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.sectionTitle}>Liked Article</Text>
-        <View style={[styles.listContainer, { maxHeight: maxListHeight }]}>
-          <FlatList
-            data={likedRestaurants}
-            renderItem={renderRestaurantItem}
-            keyExtractor={(item) => `${item._id}-${item.restaurant._id}`} // Ensure unique keys
-            style={styles.list}
-            initialNumToRender={10}
-            windowSize={5}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            ListEmptyComponent={
-              <Text style={styles.emptyText}>No liked Article</Text>
-            }
-            ListFooterComponent={
-              loading && page > 1 ? (
-                <ActivityIndicator size="small" color={APP_COLOR.GRAY} />
-              ) : null
-            }
-          />
-        </View>
-        <Text style={styles.sectionTitle}>Disliked Article</Text>
-        <View style={[styles.listContainer, { maxHeight: maxListHeight }]}>
-          <FlatList
-            data={dislikedRestaurants}
-            renderItem={renderRestaurantItem}
-            keyExtractor={(item) => `${item._id}-${item.restaurant._id}`} // Ensure unique keys
-            style={styles.list}
-            initialNumToRender={10}
-            windowSize={5}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-            ListEmptyComponent={
-              <Text style={styles.emptyText}>No disliked Article</Text>
-            }
-            ListFooterComponent={
-              loading && page > 1 ? (
-                <ActivityIndicator size="small" color={APP_COLOR.GRAY} />
-              ) : null
-            }
-          />
-        </View>
-      </View>
-    </SafeAreaView>
-  );
-};
+const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
+const maxListHeight = windowHeight * 0.5;
 
 const styles = StyleSheet.create({
   container: {
@@ -208,38 +42,40 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 12,
-    color: APP_COLOR.GRAY,
+    color: APP_COLOR.BLUE,
   },
   listContainer: {
-    overflow: "hidden", // Ensures content is clipped within bounds
+    overflow: "hidden",
   },
   list: {
     marginBottom: 24,
   },
-  restaurantItem: {
+  articleItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: APP_COLOR.GREY,
+    borderBottomColor: "#ddd",
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    gap: 12,
   },
-  restaurantName: {
+  articleThumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+  },
+  articleTitle: {
     fontSize: 16,
     color: "#333",
+    flex: 1,
   },
   timestamp: {
     fontSize: 12,
-    color: APP_COLOR.GREY,
+    color: "#999",
     marginTop: 4,
-  },
-  status: {
-    fontSize: 14,
-    color: APP_COLOR.BLUE,
   },
   emptyText: {
     fontSize: 16,
-    color: APP_COLOR.GREY,
+    color: "#999",
     textAlign: "center",
     marginVertical: 16,
   },
@@ -250,11 +86,12 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   retryButton: {
-    backgroundColor: APP_COLOR.GRAY,
+    backgroundColor: APP_COLOR.BLUE,
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 16,
+    marginHorizontal: 16,
   },
   retryButtonText: {
     color: "#fff",
@@ -263,4 +100,182 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FavoriteTab;
+const FavoriteArticles = () => {
+  const [likedArticles, setLikedArticles] = useState<ILike[]>([]);
+  const [dislikedArticles, setDislikedArticles] = useState<ILike[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const processLikes = (likes: ILike[]) => {
+    const latestLikes: { [articleId: string]: ILike } = {};
+    likes.forEach((like) => {
+      const articleId = like.article._id;
+      if (
+        !latestLikes[articleId] ||
+        new Date(like.updatedAt) > new Date(latestLikes[articleId].updatedAt)
+      ) {
+        latestLikes[articleId] = like;
+      }
+    });
+    return Object.values(latestLikes).filter((like) => like.quantity !== 0);
+  };
+
+  const fetchUserLikes = async (pageNum: number, isRefresh = false) => {
+    try {
+      setLoading(!isRefresh);
+      const res = await getUserArticleLikes(pageNum, 20);
+      console.log("Likes response:-----", res.data.data);
+      const likes = processLikes(res.data.data.result);
+
+      if (isRefresh) {
+        setLikedArticles(likes.filter((like) => like.quantity === 1));
+        setDislikedArticles(likes.filter((like) => like.quantity === -1));
+      } else {
+        setLikedArticles((prev) => [
+          ...prev,
+          ...likes.filter((like) => like.quantity === 1),
+        ]);
+        setDislikedArticles((prev) => [
+          ...prev,
+          ...likes.filter((like) => like.quantity === -1),
+        ]);
+      }
+
+      setHasMore(res.data.data.meta.total > pageNum * 20);
+    } catch (err: any) {
+      console.error("Fetch error:", err);
+      setError(err.message || "Failed to load favorite articles");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      setPage(1);
+      fetchUserLikes(1, true);
+    }, [])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setPage(1);
+    setHasMore(true);
+    await fetchUserLikes(1, true);
+  };
+
+  const loadMore = () => {
+    if (hasMore && !loading && !refreshing) {
+      setPage((prev) => prev + 1);
+      fetchUserLikes(page + 1);
+    }
+  };
+
+  const renderArticleItem = ({ item }: { item: ILike }) => (
+    <Pressable
+      style={styles.articleItem}
+      onPress={() =>
+        router.push({
+          pathname: "/article/[id]",
+          params: { id: item.article._id },
+        })
+      }
+    >
+      {item.article.thumbnail && (
+        <Image
+          source={{ uri: item.article.thumbnail }}
+          style={styles.articleThumbnail}
+          onError={() =>
+            console.log(`Failed to load thumbnail for ${item.article._id}`)
+          }
+        />
+      )}
+      <View style={{ flex: 1 }}>
+        <Text style={styles.articleTitle} numberOfLines={2}>
+          {item.article.title}
+        </Text>
+        <Text style={styles.timestamp}>
+          {new Date(item.updatedAt).toLocaleString()}
+        </Text>
+      </View>
+    </Pressable>
+  );
+
+  if (loading && page === 1 && !refreshing) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={APP_COLOR.BLUE} />
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.error}>{error}</Text>
+        <Pressable
+          style={styles.retryButton}
+          onPress={() => fetchUserLikes(1, true)}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.sectionTitle}>Liked Articles</Text>
+        <View style={[styles.listContainer, { maxHeight: maxListHeight }]}>
+          <FlatList
+            data={likedArticles}
+            renderItem={renderArticleItem}
+            keyExtractor={(item) => `${item._id}-${item.article._id}`}
+            style={styles.list}
+            initialNumToRender={10}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.1}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>No liked articles yet</Text>
+            }
+            ListFooterComponent={
+              loading && page > 1 ? (
+                <ActivityIndicator size="small" color={APP_COLOR.BLUE} />
+              ) : null
+            }
+          />
+        </View>
+        <Text style={styles.sectionTitle}>Disliked Articles</Text>
+        <View style={[styles.listContainer, { maxHeight: maxListHeight }]}>
+          <FlatList
+            data={dislikedArticles}
+            renderItem={renderArticleItem}
+            keyExtractor={(item) => `${item._id}-${item.article._id}`}
+            style={styles.list}
+            initialNumToRender={10}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.1}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>No disliked articles yet</Text>
+            }
+            ListFooterComponent={
+              loading && page > 1 ? (
+                <ActivityIndicator size="small" color={APP_COLOR.BLUE} />
+              ) : null
+            }
+          />
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+export default FavoriteArticles;

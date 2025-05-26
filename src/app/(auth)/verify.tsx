@@ -1,6 +1,7 @@
 import LoadingOverlay from "@/components/loading/overlay";
 import { resendCodeAPI, verifyCodeAPI } from "@/utils/api";
 import { APP_COLOR } from "@/utils/constant";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard, StyleSheet, Text, View } from "react-native";
@@ -51,7 +52,7 @@ const VerifyPage = () => {
         });
         console.log("is login ", isLogin);
         if (isLogin === "true") {
-          router.replace("/(tabs)");
+          router.replace("/(auth)/login");
         } else {
           router.replace("/(auth)/login");
         }

@@ -7,5 +7,6 @@ export const APP_COLOR = {
   BLUE: "blue",
   WHITE: "white",
   YELLOW: "yellow",
+  ORANGE: "orange",
 };
 export const APP_FONT = "OpenSans-Regular";

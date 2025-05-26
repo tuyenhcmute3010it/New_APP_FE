@@ -201,14 +201,7 @@ const Search = () => {
                 }
               >
                 <View>
-                  <Image
-                    style={{ width: 60, height: 60, borderRadius: 5 }}
-                    source={{
-                      uri: `${getUrlBaseBackend()}/images/restaurant/${
-                        item.image
-                      }`,
-                    }}
-                  />
+                  <Text>Search</Text>
                 </View>
                 <View>
                   <Text

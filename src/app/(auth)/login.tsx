@@ -46,6 +46,7 @@ const Login = () => {
     try {
       const res = await loginAPI(email, password);
       if (res.data) {
+        console.log(">>>>>>>>>>>>", res.data.data.access_token);
         await AsyncStorage.setItem("access_token", res.data.data.access_token);
         const access_token = await AsyncStorage.getItem("access_token");
         setAppState(res.data);

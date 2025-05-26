@@ -17,7 +17,6 @@ const RootPage = () => {
     [APP_FONT]: require("@/assets/font/OpenSans-Regular.ttf"),
   });
   useEffect(() => {
-    // AsyncStorage.removeItem("access_token");
     async function prepare() {
       try {
         //expo font
