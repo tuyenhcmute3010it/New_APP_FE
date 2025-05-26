@@ -12,42 +12,21 @@ import {
   SafeAreaView,
   Pressable,
 } from "react-native";
-import axios from "axios";
-import { getRestaurantByName, getUrlBaseBackend } from "@/utils/api";
 import { router } from "expo-router";
+import { getArticlesByQuery } from "@/utils/api";
 
 // Category data
 const data1 = [
-  {
-    key: 1,
-    name: "Football",
-    source: require("@/assets/icons/football.jpg"),
-  },
-  {
-    key: 2,
-    name: "Politics",
-    source: require("@/assets/icons/politics.jpg"),
-  },
+  { key: 1, name: "Football", source: require("@/assets/icons/football.jpg") },
+  { key: 2, name: "Politics", source: require("@/assets/icons/politics.jpg") },
   {
     key: 3,
     name: "Volleyball",
     source: require("@/assets/icons/volleyball.jpg"),
   },
-  {
-    key: 4,
-    name: "Healthcare",
-    source: require("@/assets/icons/health.jpg"),
-  },
-  {
-    key: 5,
-    name: "Economy",
-    source: require("@/assets/icons/economy.jpg"),
-  },
-  {
-    key: 6,
-    name: "Culture",
-    source: require("@/assets/icons/culture.jpg"),
-  },
+  { key: 4, name: "Healthcare", source: require("@/assets/icons/health.jpg") },
+  { key: 5, name: "Economy", source: require("@/assets/icons/economy.jpg") },
+  { key: 6, name: "Culture", source: require("@/assets/icons/culture.jpg") },
   {
     key: 7,
     name: "Education",
@@ -63,85 +42,70 @@ const data1 = [
     name: "Entertain",
     source: require("@/assets/icons/entertainment.jpg"),
   },
-  {
-    key: 10,
-    name: "Travel",
-    source: require("@/assets/icons/travel.jpg"),
-  },
-  {
-    key: 11,
-    name: "Law",
-    source: require("@/assets/icons/law.jpg"),
-  },
-  {
-    key: 12,
-    name: "Military",
-    source: require("@/assets/icons/military.jpg"),
-  },
-  {
-    key: 13,
-    name: "Vehicles",
-    source: require("@/assets/icons/car.jpg"),
-  },
+  { key: 10, name: "Travel", source: require("@/assets/icons/travel.jpg") },
+  { key: 11, name: "Law", source: require("@/assets/icons/law.jpg") },
+  { key: 12, name: "Military", source: require("@/assets/icons/military.jpg") },
+  { key: 13, name: "Vehicles", source: require("@/assets/icons/car.jpg") },
   {
     key: 14,
     name: "Real Estate",
     source: require("@/assets/icons/real-estate.jpg"),
   },
-  {
-    key: 15,
-    name: "Fashion",
-    source: require("@/assets/icons/fashion.jpg"),
-  },
-  {
-    key: 16,
-    name: "Cuisine",
-    source: require("@/assets/icons/food.jpg"),
-  },
-  {
-    key: 17,
-    name: "Fitness",
-    source: require("@/assets/icons/fitness.jpg"),
-  },
+  { key: 15, name: "Fashion", source: require("@/assets/icons/fashion.jpg") },
+  { key: 16, name: "Cuisine", source: require("@/assets/icons/food.jpg") },
+  { key: 17, name: "Fitness", source: require("@/assets/icons/fitness.jpg") },
   {
     key: 18,
     name: "Environment",
     source: require("@/assets/icons/environment.jpg"),
   },
-  {
-    key: 19,
-    name: "World",
-    source: require("@/assets/icons/world.jpg"),
-  },
-  {
-    key: 20,
-    name: "Science",
-    source: require("@/assets/icons/science.jpg"),
-  },
+  { key: 19, name: "World", source: require("@/assets/icons/world.jpg") },
+  { key: 20, name: "Science", source: require("@/assets/icons/science.jpg") },
 ];
+
+interface IArticle {
+  _id: string;
+  title: string;
+  content: string;
+  thumbnail?: string;
+  author: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  createdBy: {
+    _id: string;
+    email?: string;
+  };
+  isDeleted?: boolean;
+  deletedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [restaurants, setRestaurants] = useState<IRestaurant[]>([]);
+  const [articles, setArticles] = useState<IArticle[]>([]);
 
-  // Fetch restaurants when searchQuery changes
+  // Fetch articles when searchQuery changes
   useEffect(() => {
     if (searchQuery.trim() === "") {
-      setRestaurants([]);
+      setArticles([]);
       return;
     }
 
-    const fetchRestaurants = async () => {
+    const fetchArticles = async () => {
       try {
-        const response = await getRestaurantByName(searchQuery);
-        setRestaurants(response.data.data.result || []);
+        const response = await getArticlesByQuery(searchQuery);
+        console.log("Search articles response:", response.data);
+        setArticles(response.data.data.result || []);
       } catch (error) {
-        console.error("Error fetching restaurants:", error);
-        setRestaurants([]);
+        console.error("Error fetching articles:", error);
+        setArticles([]);
       }
     };
 
-    fetchRestaurants();
+    fetchArticles();
   }, [searchQuery]);
 
   return (
@@ -177,51 +141,78 @@ const Search = () => {
             renderItem={({ item }) => (
               <View style={{ padding: 5, width: 100, alignItems: "center" }}>
                 <Image
-                  style={{ padding: 5, width: 35, height: 35 }}
+                  style={{ width: 35, height: 35 }}
                   source={item.source}
+                  resizeMode="contain"
                 />
-                <Text style={{ fontFamily: APP_FONT }}>{item.name}</Text>
+                <Text style={{ fontFamily: APP_FONT, fontSize: 12 }}>
+                  {item.name}
+                </Text>
               </View>
             )}
           />
         </ScrollView>
 
-        {/* Restaurant Results */}
+        {/* Article Results */}
         <FlatList
-          data={restaurants}
+          data={articles}
           renderItem={({ item }) => (
-            <View>
-              <Pressable
-                style={styles.restaurantItem}
-                onPress={() =>
-                  router.navigate({
-                    pathname: "/product/[id]",
-                    params: { id: item._id },
-                  })
-                }
-              >
-                <View>
-                  <Text>Search</Text>
-                </View>
-                <View>
-                  <Text
-                    style={{
-                      fontFamily: APP_FONT,
-                      fontSize: 16,
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {item.name}
-                  </Text>
-                  <Text style={{ fontFamily: APP_FONT, color: "#666" }}>
-                    {item.address}
-                  </Text>
-                  <Text style={{ fontFamily: APP_FONT, color: "#666" }}>
-                    Rating: {item.rating} ⭐
-                  </Text>
-                </View>
-              </Pressable>
-            </View>
+            <Pressable
+              style={styles.articleItem}
+              onPress={() =>
+                router.navigate({
+                  pathname: "/article/[id]",
+                  params: { id: item._id },
+                })
+              }
+            >
+              {item.thumbnail ? (
+                <Image
+                  style={styles.thumbnail}
+                  source={{ uri: item.thumbnail }}
+                  onError={() =>
+                    console.log(`Failed to load thumbnail for ${item._id}`)
+                  }
+                />
+              ) : (
+                <View style={styles.placeholderThumbnail} />
+              )}
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontFamily: APP_FONT,
+                    fontSize: 16,
+                    fontWeight: "600",
+                    color: APP_COLOR.GRAY,
+                  }}
+                  numberOfLines={2}
+                >
+                  {item.title}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: APP_FONT,
+                    fontSize: 12,
+                    color: "#666",
+                    marginTop: 5,
+                  }}
+                  numberOfLines={2}
+                >
+                  {item.content.substring(0, 100) +
+                    (item.content.length > 100 ? "..." : "")}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: APP_FONT,
+                    fontSize: 12,
+                    color: "#666",
+                    marginTop: 5,
+                  }}
+                >
+                  By {item.author.name}
+                </Text>
+              </View>
+            </Pressable>
           )}
           keyExtractor={(item) => item._id}
           ListEmptyComponent={
@@ -240,9 +231,9 @@ const Search = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ecf0f1",
+    backgroundColor: "#fff",
     padding: 8,
-    marginTop: 30,
+    marginTop: 20,
   },
   searchContainer: {
     marginBottom: 10,
@@ -260,20 +251,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: "#fff",
     fontSize: 16,
+    fontFamily: APP_FONT,
   },
-  restaurantItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    marginVertical: 5,
+  articleItem: {
     flexDirection: "row",
-    gap: 10,
+    padding: 10,
+    marginVertical: 5,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 4,
+    alignItems: "center",
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 4,
+    marginRight: 10,
+  },
+  placeholderThumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 4,
+    marginRight: 10,
+    backgroundColor: "#ddd",
   },
   emptyText: {
     textAlign: "center",
     marginTop: 20,
     color: "#888",
     fontSize: 16,
+    fontFamily: APP_FONT,
   },
 });
+
 export default Search;

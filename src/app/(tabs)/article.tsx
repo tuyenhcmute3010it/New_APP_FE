@@ -37,6 +37,7 @@ interface IArticle {
 }
 
 const pageSizeOptions = [
+  { label: "5 Articles", value: 5 },
   { label: "10 Articles", value: 10 },
   { label: "20 Articles", value: 20 },
   { label: "50 Articles", value: 50 },
@@ -115,6 +116,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginRight: 10,
   },
+  placeholderThumbnail: {
+    width: 80,
+    height: 80,
+    borderRadius: 4,
+    marginRight: 10,
+    backgroundColor: "#ddd",
+  },
   title: {
     fontSize: 16,
     fontWeight: "600",
@@ -161,7 +169,6 @@ const AllArticles = () => {
       setLoading(true);
       const sortQuery = sort.order === "desc" ? `-${sort.field}` : sort.field;
       const response = await getListArticlesAPI(pageNum, pageSize, sortQuery);
-      console.log("Articles response:", response.data);
       const newArticles = response.data.data.result;
       if (pageNum === 1 || reset) {
         setArticles(newArticles);
@@ -190,6 +197,7 @@ const AllArticles = () => {
     setPageSize(size);
     setPage(1);
     setHasMore(true);
+    setArticles([]); // Clear articles to avoid stale data
     setModalType(null);
   };
 
@@ -197,6 +205,7 @@ const AllArticles = () => {
     setSort({ field, order });
     setPage(1);
     setHasMore(true);
+    setArticles([]); // Clear articles for new sort
     setModalType(null);
   };
 
@@ -225,7 +234,7 @@ const AllArticles = () => {
             }
           />
         ) : (
-          <View style={[styles.thumbnail, { backgroundColor: "#ddd" }]} />
+          <View style={styles.placeholderThumbnail} />
         )}
         <View style={{ flex: 1 }}>
           <Text style={styles.title} numberOfLines={2}>
@@ -292,8 +301,6 @@ const AllArticles = () => {
         data={articles}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.1}
         ListFooterComponent={
           loading ? (
             <View style={styles.footer}>
@@ -307,7 +314,7 @@ const AllArticles = () => {
       />
       <Modal
         visible={modalType !== null}
-        transparent={true}
+        transparent
         animationType="slide"
         onRequestClose={() => setModalType(null)}
       >

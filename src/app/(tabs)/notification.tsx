@@ -103,7 +103,6 @@ const NotificationTab = () => {
       setLoading(!isRefresh);
       setRefreshing(isRefresh);
       const response = await getRecentArticles(20);
-      console.log("Notifications response:---------", response.data);
       setArticles(response.data.data.result);
     } catch (err: any) {
       setError(err.message || "Failed to load notifications");
