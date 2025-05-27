@@ -45,4 +45,4 @@ A React Native mobile app built with Expo for end-users to consume news content 
 
    ```bash
    npm run dev
-- click a to open app with androidndroid
+- click a to open app with android
